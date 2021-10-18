@@ -15,7 +15,7 @@ final class XCBuildLogCollectTests: XCTestCase {
         // Mac Catalyst won't have `Process`, but it is supported for executables.
         #if !targetEnvironment(macCatalyst)
 
-        let fooBinary = productsDirectory.appendingPathComponent("XCBuildLogCollect")
+        let fooBinary = productsDirectory.appendingPathComponent("xcbuildlogcollect")
 
         let process = Process()
         process.executableURL = fooBinary
@@ -29,7 +29,8 @@ final class XCBuildLogCollectTests: XCTestCase {
         let data = pipe.fileHandleForReading.readDataToEndOfFile()
         let output = String(data: data, encoding: .utf8)
 
-        XCTAssertEqual(output, "Hello, world!\n")
+        XCTAssertNotNil(output)
+        XCTAssert(output!.hasPrefix("USAGE: xcbuildlogcollect <subcommand>"))
         #endif
     }
 

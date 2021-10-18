@@ -7,21 +7,28 @@ let package = Package(
     name: "XCBuildLogCollect",
     platforms: [.macOS(.v10_13)],
     products: [
-        .executable(name: "xcbuildlogcollect", targets: ["XCBuildLogCollect", "BigQuerySwift"]),
+        .executable(name: "xcbuildlogcollect", targets: ["XCBuildLogCollect"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/MobileNativeFoundation/XCLogParser", from: "0.2.28"),
-        .package(url: "https://github.com/Kitura/SwiftyRequest.git", .upToNextMajor(from: "3.1.0")),
-        .package(url: "https://github.com/ShotaKashihara/google-auth-library-swift.git", branch: "master"),
+        .package(url: "https://github.com/apple/swift-argument-parser", .upToNextMinor(from: "0.3.0")),
+        .package(url: "https://github.com/MobileNativeFoundation/XCLogParser.git", .exact("0.2.26")),
+        .package(url: "https://github.com/googleapis/google-api-swift-client.git", branch: "master"),
+        .package(url: "https://github.com/googleapis/google-auth-library-swift.git", branch: "master"),
     ],
     targets: [
         .executableTarget(
             name: "XCBuildLogCollect",
-            dependencies: ["XCLogParser", "BigQuerySwift"]),
+            dependencies: [
+                "XCLogParser",
+                "BigQueryClient",
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
+            ]),
         .target(
-            name: "BigQuerySwift",
-            dependencies: ["SwiftyRequest", .product(name: "OAuth2", package: "google-auth-library-swift")]
-        ),
+            name: "BigQueryClient",
+            dependencies: [
+                .product(name: "GoogleAPIRuntime", package: "google-api-swift-client"),
+                .product(name: "OAuth2", package: "google-auth-library-swift")
+            ]),
         .testTarget(
             name: "XCBuildLogCollectTests",
             dependencies: ["XCBuildLogCollect"]),
