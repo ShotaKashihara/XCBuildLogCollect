@@ -86,57 +86,7 @@ struct UploadCommand: ParsableCommand {
             strictProjectName: strictProjectName
         )
 
-        let logFinder = LogFinder()
-        let activityLogParser = ActivityParser()
-
-        let logURL = try logFinder.findLatestLogWithLogOptions(logOptions)
-        let activityLog: IDEActivityLog = try activityLogParser.parseActivityLogInURL(
-            logURL,
-            redacted: false,
-            withoutBuildSpecificInformation: true
-        )
-
-        struct BuildLog: Encodable {
-            /// timestamp
-            let timestamp: TimeInterval
-            /// 0
-            let sectionType: Int8
-            /// `Xcode.IDEActivityLogDomainType.BuildLog`
-            let domainType: String
-            /// `Visit Intern Qa`
-            let title: String
-            let subtitle: String
-            /// `40` (sec)
-            let buildTime: Int
-            let timeStartedRecording: Double
-            let timeStoppedRecording: Double
-            /// false
-            let wasFetchedFromCache: Bool
-            /// activityLog.mainSection.localizedResultString.replacingOccurrences(of: "Build ", with: "")
-            let buildStatus: String?
-        }
-
-        func buildLog(log: IDEActivityLogSection, timestamp: TimeInterval) -> BuildLog {
-            return .init(
-                timestamp: timestamp,
-                sectionType: log.sectionType,
-                domainType: log.domainType,
-                title: log.title,
-                subtitle: log.subtitle,
-                buildTime: Int(log.timeStoppedRecording - log.timeStartedRecording),
-                timeStartedRecording: log.timeStartedRecording,
-                timeStoppedRecording: log.timeStoppedRecording,
-                wasFetchedFromCache: log.wasFetchedFromCache,
-                buildStatus: log.localizedResultString.replacingOccurrences(of: "Build ", with: "")
-            )
-        }
-        let timestampNow = Date().timeIntervalSince1970
-        var buildLogs: [BuildLog] = []
-        buildLogs.append(buildLog(log: activityLog.mainSection, timestamp: timestampNow))
-        for s1 in activityLog.mainSection.subSections {
-            buildLogs.append(buildLog(log: s1, timestamp: timestampNow))
-            buildLogs.append(contentsOf: s1.subSections.map { buildLog(log: $0, timestamp: timestampNow) })
-        }
+        let buildLogs = try buildLogs(logOptions)
 
         try insert(
             credentialsURL: URL(fileURLWithPath: credentialsPath),
